@@ -30,16 +30,16 @@ model, encoders = load_model()
 base_df = load_data()
 
 # ======================
-# PROBABILITY LOGIC
+# PROBABILITY LOGIC (REALISTIC)
 # ======================
 def admission_probability(user_rank, cutoff):
     diff = cutoff - user_rank
-    if diff < -15000: return 2
-    if diff < -5000:  return 10
-    if diff < 0:      return 30
-    if diff < 5000:   return 55
-    if diff < 15000:  return 75
-    return 90
+    if diff < -10000: return 0
+    if diff < -5000:  return 5
+    if diff < 0:      return 15
+    if diff < 3000:   return 40
+    if diff < 8000:   return 65
+    return 85
 
 # ======================
 # PREDICTION FUNCTION
@@ -48,26 +48,38 @@ def predict_colleges(rank, gender, category, branch_code, year):
 
     df = base_df.copy()
 
+    # Branch filter
     if branch_code != "ALL":
         df = df[df["BRANCH_CODE"] == branch_code]
 
+    # Gender restriction
     if gender == "MALE":
         df = df[df["COED"] != "GIRLS"]
 
+    # Add user inputs
     df["YEAR"] = year
     df["GENDER"] = gender
     df["CATEGORY"] = category
 
     FEATURES = ["YEAR","GENDER","CATEGORY","BRANCH_CODE","DIST","COED","TYPE"]
 
+    # -------- ENCODE COPY (DO NOT TOUCH ORIGINAL DF) --------
+    encoded_df = df.copy()
+
     for col, le in encoders.items():
-        df[col] = df[col].map(
+        encoded_df[col] = encoded_df[col].map(
             lambda x: le.transform([x])[0] if x in le.classes_ else -1
         )
 
-    X = df[FEATURES]
+    X = encoded_df[FEATURES]
+
+    # -------- PREDICT --------
     df["PREDICTED_CUTOFF"] = model.predict(X).astype(int)
 
+    # -------- HARD ELIGIBILITY --------
+    df = df[df["PREDICTED_CUTOFF"] >= rank]
+
+    # -------- PROBABILITY --------
     df["PROBABILITY"] = df["PREDICTED_CUTOFF"].apply(
         lambda x: admission_probability(rank, x)
     )
@@ -75,13 +87,7 @@ def predict_colleges(rank, gender, category, branch_code, year):
 
     df = df.drop_duplicates(["INST_CODE","BRANCH_CODE"])
 
-    # Decode
-    for col, le in encoders.items():
-        df[col] = df[col].apply(
-            lambda x: le.inverse_transform([int(x)])[0] if x != -1 else "UNKNOWN"
-        )
-
-    return df
+    return df.reset_index(drop=True)
 
 # ======================
 # USER INPUTS
@@ -89,7 +95,7 @@ def predict_colleges(rank, gender, category, branch_code, year):
 with st.sidebar:
     st.header("📝 Enter Details")
 
-    rank = st.number_input("Rank", min_value=1, max_value=200000, value=50000)
+    rank = st.number_input("Rank", min_value=1, max_value=200000, value=19000)
     gender = st.selectbox("Gender", ["FEMALE","MALE"])
     category = st.selectbox("Category", ["OC","BC","SC","ST"])
 
@@ -109,8 +115,12 @@ if predict_btn:
         rank, gender, category, branch_code, year
     )
 
+    if predicted_df.empty:
+        st.warning("No eligible colleges found for your rank.")
+        st.stop()
+
     # ------------------
-    # FILTER OPTIONS (FROM UNFILTERED predicted_df)
+    # FILTER OPTIONS
     # ------------------
     st.subheader("🎯 Apply Filters")
 
@@ -137,32 +147,25 @@ if predict_btn:
     with col4:
         min_prob = st.slider(
             "Minimum Probability %",
-            0, 100, 50
+            0, 100, 40
         )
 
     # ------------------
-    # APPLY FILTERS
+    # APPLY FILTERS (ORDER MATTERS)
     # ------------------
     filtered_df = predicted_df.copy()
 
     if branches:
-        filtered_df = filtered_df[
-            filtered_df["BRANCH_NAME"].isin(branches)
-        ]
+        filtered_df = filtered_df[filtered_df["BRANCH_NAME"].isin(branches)]
 
     if districts:
-        filtered_df = filtered_df[
-            filtered_df["DIST"].isin(districts)
-        ]
+        filtered_df = filtered_df[filtered_df["DIST"].isin(districts)]
 
     if college_type != "ALL":
-        filtered_df = filtered_df[
-            filtered_df["COED"] == college_type
-        ]
+        filtered_df = filtered_df[filtered_df["COED"] == college_type]
 
-    filtered_df = filtered_df[
-        filtered_df["PROBABILITY"] >= min_prob
-    ]
+    # Probability filter LAST
+    filtered_df = filtered_df[filtered_df["PROBABILITY"] >= min_prob]
 
     # ------------------
     # DISPLAY RESULT
@@ -170,13 +173,14 @@ if predict_btn:
     st.subheader("🏫 Predicted Colleges")
 
     if filtered_df.empty:
-        st.warning("No colleges match the selected filters. Try relaxing filters.")
+        st.warning("No colleges match the selected filters. Try relaxing them.")
     else:
         display_cols = [
             "INST_CODE","INST_NAME","TYPE",
             "BRANCH_NAME","DIST","PLACE",
             "COED","PREDICTED_CUTOFF","PROBABILITY_%"
         ]
+
         st.dataframe(
             filtered_df
                 .sort_values(by="PROBABILITY", ascending=False)[display_cols],
@@ -396,6 +400,7 @@ if predict_btn:
 #             ],
 #             use_container_width=True
 #         )
+
 
 
 
