@@ -172,16 +172,18 @@ if predict_btn:
     if filtered_df.empty:
         st.warning("No colleges match the selected filters. Try relaxing filters.")
     else:
+       display_cols = [
+            "INST_CODE","INST_NAME","TYPE",
+            "BRANCH_NAME","DIST","PLACE",
+            "COED","PREDICTED_CUTOFF","PROBABILITY_%"
+        ]
+
         st.dataframe(
-            filtered_df[
-                [
-                    "INST_CODE","INST_NAME","TYPE",
-                    "BRANCH_NAME","DIST","PLACE",
-                    "COED","PREDICTED_CUTOFF","PROBABILITY_%"
-                ]
-            ].sort_values("PROBABILITY", ascending=False),
+            filtered_df
+                .sort_values(by="PROBABILITY", ascending=False)[display_cols],
             use_container_width=True
         )
+
 
 
 # import streamlit as st
@@ -229,7 +231,7 @@ if predict_btn:
 
 # # ======================
 # # PREDICT FUNCTION
-# # ======================
+ # ======================
 # def predict_colleges(rank, gender, category, branch_code=None, year=2025):
 
 #     df = base_df.copy()
@@ -395,5 +397,6 @@ if predict_btn:
 #             ],
 #             use_container_width=True
 #         )
+
 
 
