@@ -66,7 +66,7 @@ def predict_colleges(rank, gender, category, branch, year):
 
     df["PREDICTED_CUTOFF"] = model.predict(encoded[FEATURES]).astype(int)
 
-    # HARD ELIGIBILITY
+    # STRICT ELIGIBILITY
     df = df[df["PREDICTED_CUTOFF"] >= rank]
 
     df["PROBABILITY"] = df["PREDICTED_CUTOFF"].apply(
@@ -74,7 +74,9 @@ def predict_colleges(rank, gender, category, branch, year):
     )
     df["PROBABILITY_%"] = df["PROBABILITY"].astype(str) + "%"
 
-    return df.drop_duplicates(["INST_CODE","BRANCH_CODE"]).reset_index(drop=True)
+    return df.drop_duplicates(
+        ["INST_CODE","BRANCH_CODE"]
+    ).reset_index(drop=True)
 
 # ======================
 # SIDEBAR INPUTS
@@ -85,13 +87,16 @@ with st.sidebar:
     rank = st.number_input("Rank", 1, 200000, 19000)
     gender = st.selectbox("Gender", ["FEMALE","MALE"])
     category = st.selectbox("Category", ["OC","BC","SC","ST"])
-    branch = st.selectbox("Branch", ["ALL"] + sorted(base_df["BRANCH_CODE"].unique()))
+    branch = st.selectbox(
+        "Branch",
+        ["ALL"] + sorted(base_df["BRANCH_CODE"].unique())
+    )
     year = 2025
 
-    predict_btn = st.button("🔮 Predict")
+    predict_btn = st.button("🔮 Predict Colleges")
 
 # ======================
-# PREDICT (ONCE)
+# PREDICT
 # ======================
 if predict_btn:
     st.session_state["predicted"] = predict_colleges(
@@ -99,52 +104,66 @@ if predict_btn:
     )
 
 # ======================
-# FILTERS (ALWAYS ACTIVE)
+# FILTER + DISPLAY (AUTO)
 # ======================
 if "predicted" in st.session_state:
 
     df = st.session_state["predicted"]
 
-    st.subheader("🎯 Apply Filters")
+    st.subheader("🎯 Filters")
 
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-        f_branch = st.multiselect("Branch Name", sorted(df["BRANCH_NAME"].unique()))
+        f_branch = st.multiselect(
+            "Branch Name",
+            sorted(df["BRANCH_NAME"].unique())
+        )
+
     with c2:
-        f_dist = st.multiselect("District", sorted(df["DIST"].unique()))
+        f_dist = st.multiselect(
+            "District",
+            sorted(df["DIST"].unique())
+        )
+
     with c3:
-        f_type = st.selectbox("College Type", ["ALL","COED","GIRLS"])
+        f_type = st.selectbox(
+            "College Type",
+            ["ALL","COED","GIRLS"]
+        )
+
     with c4:
-        f_prob = st.slider("Minimum Probability %", 0, 100, 40)
+        f_prob = st.slider(
+            "Minimum Probability %",
+            0, 100, 40
+        )
 
-    apply_btn = st.button("✅ Apply Filters")
+    # APPLY FILTERS LIVE
+    filtered = df.copy()
 
-    if apply_btn:
-        filtered = df.copy()
+    if f_branch:
+        filtered = filtered[filtered["BRANCH_NAME"].isin(f_branch)]
+    if f_dist:
+        filtered = filtered[filtered["DIST"].isin(f_dist)]
+    if f_type != "ALL":
+        filtered = filtered[filtered["COED"] == f_type]
 
-        if f_branch:
-            filtered = filtered[filtered["BRANCH_NAME"].isin(f_branch)]
-        if f_dist:
-            filtered = filtered[filtered["DIST"].isin(f_dist)]
-        if f_type != "ALL":
-            filtered = filtered[filtered["COED"] == f_type]
+    filtered = filtered[filtered["PROBABILITY"] >= f_prob]
 
-        filtered = filtered[filtered["PROBABILITY"] >= f_prob]
+    st.subheader("🏫 Predicted Colleges")
 
-        st.subheader("🏫 Predicted Colleges")
+    if filtered.empty:
+        st.warning("No colleges match your filters.")
+    else:
+        st.dataframe(
+            filtered.sort_values("PROBABILITY", ascending=False)[
+                ["INST_CODE","INST_NAME","TYPE",
+                 "BRANCH_NAME","DIST","PLACE",
+                 "COED","PREDICTED_CUTOFF","PROBABILITY_%"]
+            ],
+            use_container_width=True
+        )
 
-        if filtered.empty:
-            st.warning("No colleges match your filters.")
-        else:
-            st.dataframe(
-                filtered.sort_values("PROBABILITY", ascending=False)[
-                    ["INST_CODE","INST_NAME","TYPE","BRANCH_NAME",
-                     "DIST","PLACE","COED",
-                     "PREDICTED_CUTOFF","PROBABILITY_%"]
-                ],
-                use_container_width=True
-            )
 
 
 
@@ -359,6 +378,7 @@ if "predicted" in st.session_state:
 #             ],
 #             use_container_width=True
 #         )
+
 
 
 
