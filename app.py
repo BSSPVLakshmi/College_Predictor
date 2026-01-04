@@ -172,12 +172,11 @@ if predict_btn:
     if filtered_df.empty:
         st.warning("No colleges match the selected filters. Try relaxing filters.")
     else:
-       display_cols = [
+        display_cols = [
             "INST_CODE","INST_NAME","TYPE",
             "BRANCH_NAME","DIST","PLACE",
             "COED","PREDICTED_CUTOFF","PROBABILITY_%"
         ]
-
         st.dataframe(
             filtered_df
                 .sort_values(by="PROBABILITY", ascending=False)[display_cols],
@@ -397,6 +396,7 @@ if predict_btn:
 #             ],
 #             use_container_width=True
 #         )
+
 
 
 
