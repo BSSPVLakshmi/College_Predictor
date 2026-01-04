@@ -5,10 +5,7 @@ import joblib
 # ======================
 # PAGE CONFIG
 # ======================
-st.set_page_config(
-    page_title="AP EAPCET College Predictor",
-    layout="wide"
-)
+st.set_page_config(page_title="AP EAPCET College Predictor", layout="wide")
 
 st.title("🎓 AP EAPCET College Predictor")
 st.caption("ML-based prediction using historical cutoff trends")
@@ -18,9 +15,10 @@ st.caption("ML-based prediction using historical cutoff trends")
 # ======================
 @st.cache_resource
 def load_model():
-    model = joblib.load("cutoff_predictor_xgb.pkl")
-    encoders = joblib.load("cutoff_encoders.pkl")
-    return model, encoders
+    return (
+        joblib.load("cutoff_predictor_xgb.pkl"),
+        joblib.load("cutoff_encoders.pkl")
+    )
 
 @st.cache_data
 def load_data():
@@ -30,162 +28,123 @@ model, encoders = load_model()
 base_df = load_data()
 
 # ======================
-# PROBABILITY LOGIC (REALISTIC)
+# PROBABILITY LOGIC
 # ======================
-def admission_probability(user_rank, cutoff):
-    diff = cutoff - user_rank
+def admission_probability(rank, cutoff):
+    diff = cutoff - rank
     if diff < -10000: return 0
-    if diff < -5000:  return 5
-    if diff < 0:      return 15
-    if diff < 3000:   return 40
-    if diff < 8000:   return 65
+    if diff < -5000: return 5
+    if diff < 0: return 15
+    if diff < 3000: return 40
+    if diff < 8000: return 65
     return 85
 
 # ======================
 # PREDICTION FUNCTION
 # ======================
-def predict_colleges(rank, gender, category, branch_code, year):
+def predict_colleges(rank, gender, category, branch, year):
 
     df = base_df.copy()
 
-    # Branch filter
-    if branch_code != "ALL":
-        df = df[df["BRANCH_CODE"] == branch_code]
+    if branch != "ALL":
+        df = df[df["BRANCH_CODE"] == branch]
 
-    # Gender restriction
     if gender == "MALE":
         df = df[df["COED"] != "GIRLS"]
 
-    # Add user inputs
     df["YEAR"] = year
     df["GENDER"] = gender
     df["CATEGORY"] = category
 
     FEATURES = ["YEAR","GENDER","CATEGORY","BRANCH_CODE","DIST","COED","TYPE"]
 
-    # -------- ENCODE COPY (DO NOT TOUCH ORIGINAL DF) --------
-    encoded_df = df.copy()
-
+    encoded = df.copy()
     for col, le in encoders.items():
-        encoded_df[col] = encoded_df[col].map(
+        encoded[col] = encoded[col].map(
             lambda x: le.transform([x])[0] if x in le.classes_ else -1
         )
 
-    X = encoded_df[FEATURES]
+    df["PREDICTED_CUTOFF"] = model.predict(encoded[FEATURES]).astype(int)
 
-    # -------- PREDICT --------
-    df["PREDICTED_CUTOFF"] = model.predict(X).astype(int)
-
-    # -------- HARD ELIGIBILITY --------
+    # HARD ELIGIBILITY
     df = df[df["PREDICTED_CUTOFF"] >= rank]
 
-    # -------- PROBABILITY --------
     df["PROBABILITY"] = df["PREDICTED_CUTOFF"].apply(
         lambda x: admission_probability(rank, x)
     )
     df["PROBABILITY_%"] = df["PROBABILITY"].astype(str) + "%"
 
-    df = df.drop_duplicates(["INST_CODE","BRANCH_CODE"])
-
-    return df.reset_index(drop=True)
+    return df.drop_duplicates(["INST_CODE","BRANCH_CODE"]).reset_index(drop=True)
 
 # ======================
-# USER INPUTS
+# SIDEBAR INPUTS
 # ======================
 with st.sidebar:
-    st.header("📝 Enter Details")
+    st.header("📝 Student Details")
 
-    rank = st.number_input("Rank", min_value=1, max_value=200000, value=19000)
+    rank = st.number_input("Rank", 1, 200000, 19000)
     gender = st.selectbox("Gender", ["FEMALE","MALE"])
     category = st.selectbox("Category", ["OC","BC","SC","ST"])
+    branch = st.selectbox("Branch", ["ALL"] + sorted(base_df["BRANCH_CODE"].unique()))
+    year = 2025
 
-    branch_options = ["ALL"] + sorted(base_df["BRANCH_CODE"].unique())
-    branch_code = st.selectbox("Branch", branch_options)
-
-    year = st.selectbox("Counselling Year", [2025])
-
-    predict_btn = st.button("🔮 Predict Colleges")
+    predict_btn = st.button("🔮 Predict")
 
 # ======================
-# PREDICT & FILTER
+# PREDICT (ONCE)
 # ======================
 if predict_btn:
-
-    predicted_df = predict_colleges(
-        rank, gender, category, branch_code, year
+    st.session_state["predicted"] = predict_colleges(
+        rank, gender, category, branch, year
     )
 
-    if predicted_df.empty:
-        st.warning("No eligible colleges found for your rank.")
-        st.stop()
+# ======================
+# FILTERS (ALWAYS ACTIVE)
+# ======================
+if "predicted" in st.session_state:
 
-    # ------------------
-    # FILTER OPTIONS
-    # ------------------
+    df = st.session_state["predicted"]
+
     st.subheader("🎯 Apply Filters")
 
-    col1, col2, col3, col4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
-    with col1:
-        branches = st.multiselect(
-            "Branch Name",
-            sorted(predicted_df["BRANCH_NAME"].unique())
-        )
+    with c1:
+        f_branch = st.multiselect("Branch Name", sorted(df["BRANCH_NAME"].unique()))
+    with c2:
+        f_dist = st.multiselect("District", sorted(df["DIST"].unique()))
+    with c3:
+        f_type = st.selectbox("College Type", ["ALL","COED","GIRLS"])
+    with c4:
+        f_prob = st.slider("Minimum Probability %", 0, 100, 40)
 
-    with col2:
-        districts = st.multiselect(
-            "District",
-            sorted(predicted_df["DIST"].unique())
-        )
+    apply_btn = st.button("✅ Apply Filters")
 
-    with col3:
-        college_type = st.selectbox(
-            "College Type",
-            ["ALL","COED","GIRLS"]
-        )
+    if apply_btn:
+        filtered = df.copy()
 
-    with col4:
-        min_prob = st.slider(
-            "Minimum Probability %",
-            0, 100, 40
-        )
+        if f_branch:
+            filtered = filtered[filtered["BRANCH_NAME"].isin(f_branch)]
+        if f_dist:
+            filtered = filtered[filtered["DIST"].isin(f_dist)]
+        if f_type != "ALL":
+            filtered = filtered[filtered["COED"] == f_type]
 
-    # ------------------
-    # APPLY FILTERS (ORDER MATTERS)
-    # ------------------
-    filtered_df = predicted_df.copy()
+        filtered = filtered[filtered["PROBABILITY"] >= f_prob]
 
-    if branches:
-        filtered_df = filtered_df[filtered_df["BRANCH_NAME"].isin(branches)]
+        st.subheader("🏫 Predicted Colleges")
 
-    if districts:
-        filtered_df = filtered_df[filtered_df["DIST"].isin(districts)]
-
-    if college_type != "ALL":
-        filtered_df = filtered_df[filtered_df["COED"] == college_type]
-
-    # Probability filter LAST
-    filtered_df = filtered_df[filtered_df["PROBABILITY"] >= min_prob]
-
-    # ------------------
-    # DISPLAY RESULT
-    # ------------------
-    st.subheader("🏫 Predicted Colleges")
-
-    if filtered_df.empty:
-        st.warning("No colleges match the selected filters. Try relaxing them.")
-    else:
-        display_cols = [
-            "INST_CODE","INST_NAME","TYPE",
-            "BRANCH_NAME","DIST","PLACE",
-            "COED","PREDICTED_CUTOFF","PROBABILITY_%"
-        ]
-
-        st.dataframe(
-            filtered_df
-                .sort_values(by="PROBABILITY", ascending=False)[display_cols],
-            use_container_width=True
-        )
+        if filtered.empty:
+            st.warning("No colleges match your filters.")
+        else:
+            st.dataframe(
+                filtered.sort_values("PROBABILITY", ascending=False)[
+                    ["INST_CODE","INST_NAME","TYPE","BRANCH_NAME",
+                     "DIST","PLACE","COED",
+                     "PREDICTED_CUTOFF","PROBABILITY_%"]
+                ],
+                use_container_width=True
+            )
 
 
 
@@ -400,6 +359,7 @@ if predict_btn:
 #             ],
 #             use_container_width=True
 #         )
+
 
 
 
