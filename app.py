@@ -75,6 +75,9 @@ def predict_colleges(rank, gender, category, branch_code=None, year=2025):
         lambda x: admission_probability(rank, x)
     )
 
+    df["PROBABILITY_%"] = df["PROBABILITY"].astype(str) + "%"
+
+
     df = df.drop_duplicates(["INST_CODE","BRANCH_CODE"])
 
     # Decode categorical columns
@@ -163,18 +166,30 @@ if predict_btn:
 
     filtered = result.copy()
 
+# Branch filter
     if selected_branches:
-        filtered = filtered[filtered["BRANCH_NAME"].isin(selected_branches)]
+        filtered = filtered[
+            filtered["BRANCH_NAME"].isin(selected_branches)
+        ]
 
+# District filter
     if selected_districts:
-        filtered = filtered[filtered["DIST"].isin(selected_districts)]
+        filtered = filtered[
+            filtered["DIST"].isin(selected_districts)
+        ]
 
+# College type filter
     if college_type != "ALL":
-        filtered = filtered[filtered["COED"] == college_type]
+        filtered = filtered[
+            filtered["COED"] == college_type
+        ]
 
-    filtered = filtered[
-        filtered["PROBABILITY"] >= min_prob
-    ]
+# Probability filter (NUMERIC)
+    if min_prob > 0:
+        filtered = filtered[
+            filtered["PROBABILITY"] >= min_prob
+        ]
+
 
     # ======================
     # DISPLAY TABLE
@@ -194,3 +209,4 @@ if predict_btn:
             ],
             use_container_width=True
         )
+
