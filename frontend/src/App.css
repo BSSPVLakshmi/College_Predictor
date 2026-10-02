@@ -1,0 +1,493 @@
+/* ================= GLOBAL ================= */
+body {
+  margin: 0;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+/* ================= HERO (UNCHANGED) ================= */
+.hero {
+  background: linear-gradient(135deg, #0f3d4c, #155a6a);
+  padding: 26px 80px 36px;
+  position: relative;
+  color: white;
+}
+
+/* ===== LOGO (LEFT) ===== */
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+}
+
+.logo img {
+  height: 78px;
+  width: 78px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+  padding: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== CENTER TEXT ===== */
+.hero-text {
+  text-align: center;
+  max-width: 950px;
+  margin: 6px auto 0;
+}
+
+/* ===== HEADING ===== */
+.hero-title {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 6px 0 12px;
+  color: #9ae6b4;
+}
+
+/* ===== DESCRIPTION ===== */
+.hero-sub {
+  font-size: 17px;
+  line-height: 1.65;
+  color: #eef1f0;
+  margin: 0 0 14px 0;
+}
+
+/* ================= PREDICTOR SECTION ================= */
+.predictor-bg {
+  background: #eef7fb;
+  /* light, clearly separate from hero */
+  padding: 70px 0;
+}
+
+.predictor-card {
+  max-width: 1100px;
+  margin: auto;
+  display: flex;
+  gap: 50px;
+  align-items: flex-start;
+}
+
+/* LEFT IMAGE */
+.image-box {
+  width: 320px;
+  height: 320px;
+  background: #e6e6e6;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24px;
+}
+
+/* RIGHT CONTENT */
+.predictor-right {
+  flex: 1;
+  color: #123;
+}
+
+/* ================= STEP BAR ================= */
+.progress-wrap {
+  margin-bottom: 22px;
+}
+
+.progress-wrap span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #d3e3ea;
+  border-radius: 5px;
+  margin-top: 6px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #0f3d4c;
+  border-radius: 5px;
+}
+
+/* ================= INPUTS ================= */
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 14px;
+  font-size: 15px;
+}
+
+/* ================= SIDE BY SIDE ================= */
+.dual-select {
+  display: flex;
+  gap: 20px;
+  margin-top: 18px;
+}
+
+/* ================= DROPDOWN ================= */
+.dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-btn {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.dropdown-menu div {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdown-menu div:hover {
+  background: #f2f2f2;
+}
+
+.dropdown-menu .active {
+  background: #0f3d4c;
+  color: white;
+}
+
+/* ================= NAV BUTTONS ================= */
+.nav-btns {
+  display: flex;
+  gap: 15px;
+  margin-top: 28px;
+}
+
+.nav-btns button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.nav-btns .next {
+  background: #f2b705;
+  color: black;
+}
+
+/* ================= FEATURES ================= */
+.features {
+  display: flex;
+  gap: 25px;
+  padding: 60px 80px;
+}
+
+.card {
+  flex: 1;
+  padding: 40px;
+  background: #e6f3ff;
+  border-radius: 16px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ================= WHY ================= */
+.why {
+  display: flex;
+  padding: 60px 80px;
+  gap: 40px;
+}
+
+/* ================= CONTACT ================= */
+.contact {
+  background: #e7fff2;
+  color: rgb(72, 66, 66);
+  padding: 40px;
+  text-align: center;
+}
+
+/* ================= FEATURES NEW ================= */
+.features-section {
+  padding: 80px 80px;
+  background: #f4fbff;
+}
+
+/* Heading */
+.features-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.features-tag {
+  color: #f2b705;
+  font-weight: 600;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.features-header h2 {
+  font-size: 30px;
+  color: #123;
+}
+
+/* Boxes */
+.features-list {
+  display: flex;
+  gap: 35px;
+}
+
+.feature-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 35px;
+  border-radius: 22px;
+}
+
+/* Image */
+.feature-box img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Text */
+.feature-box h3 {
+  margin: 0 0 8px;
+  color: #123;
+}
+
+.feature-box p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Colors */
+.feature-box.blue {
+  background: #e6f0ff;
+}
+
+.feature-box.green {
+  background: #e7fff2;
+}
+
+.feature-box.peach {
+  background: #fff1e6;
+}
+
+/* ================= FEATURE SLIDER ================= */
+.features-slider {
+  padding: 80px 80px;
+  background: #eafff4;
+}
+
+/* Heading */
+.features-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.features-tag {
+  color: #f2b705;
+  font-weight: 600;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.features-header h2 {
+  font-size: 30px;
+  color: #123;
+}
+
+/* Slider */
+.slider-window {
+  overflow: hidden;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.slider-track {
+  display: flex;
+  transition: transform 0.6s ease;
+}
+
+/* Single slide */
+.slide {
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 40px;
+  border-radius: 28px;
+}
+
+/* Colors */
+.slide.blue {
+  background: #dbe9ff;
+}
+
+.slide.green {
+  background: #dcfff1;
+}
+
+.slide.peach {
+  background: #fff0e6;
+}
+
+/* Image */
+.slide-img {
+  width: 180px;
+  height: 140px;
+  background: white;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 18px;
+}
+
+/* Text */
+.slide-text h3 {
+  margin: 0 0 10px;
+  color: #123;
+}
+
+.slide-text p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Dots */
+.slider-dots {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #cfd8dc;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 6px;
+  cursor: pointer;
+}
+
+.dot.active {
+  background: #0f3d4c;
+}
+
+/* ===== WHY SECTION BACKGROUND (SAME AS PREVIOUS) ===== */
+.why-section {
+  background: linear-gradient(135deg, #0f3d4c, #155a6a);
+  padding: 80px 60px;
+}
+
+/* ===== WHITE BOX ===== */
+.why-card {
+  max-width: 1200px;
+  margin: auto;
+  background: white;
+  border-radius: 18px;
+  padding: 50px;
+  display: flex;
+  gap: 50px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== LEFT CONTENT ===== */
+.why-text {
+  flex: 1.2;
+}
+
+.why-text h2 {
+  font-size: 32px;
+  color: #0f3d4c;
+  margin-bottom: 20px;
+}
+
+.why-text h3 {
+  font-size: 20px;
+  margin-top: 24px;
+  margin-bottom: 10px;
+  color: #155a6a;
+}
+
+.why-text p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #444;
+}
+
+.why-text ul {
+  padding-left: 20px;
+  margin-top: 10px;
+}
+
+.why-text li {
+  font-size: 15.5px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+/* ===== RIGHT IMAGE ===== */
+.why-image {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.why-image img {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 14px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .why-card {
+    flex-direction: column;
+    padding: 30px;
+  }
+
+  .why-text h2 {
+    font-size: 26px;
+  }
+}
